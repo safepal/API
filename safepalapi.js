@@ -134,6 +134,7 @@ api.post("/safepal/web/api/v1", function(req, res, next){
                                    ///pick values from JSON to store   
 
                                   ///db connection
+                                  ///shema stored in separate file
                                    mongoose.connect("mongodb://localhost/test");
                                    var spdb = mongoose.connection;
                                    db.on('error', console.error.bind(console, 'connection error:'));
@@ -141,8 +142,6 @@ api.post("/safepal/web/api/v1", function(req, res, next){
 
                                     console.log("success");
                                   });
-
-                                   
 
                                 }
                         }
