@@ -6,12 +6,12 @@ module.exports = function (api) {
     //var exp = require("express");
     var miscStuff = require("../misc.js");
     //mongoose.createConnection("mongodb://" + miscStuff.dbUser + ":" + miscStuff.dbP + "@localhost:23013/safepaldb");
-    mongoose.createConnection("mongodb://127.0.0.1:27017/safepaldb");
+    mongoose.createConnection("mongodb://46.101.226.248:27017/safepaldb");
 
     console.log(miscStuff.dbUser + " pass is " + miscStuff.dbP);
 
     var user = require("../models/user");
-    var report = require("../models/report");
+    var Report = require("../models/report");
     var partner = require("../models/partner");
     var token = require("../models/token");
 
@@ -50,7 +50,7 @@ module.exports = function (api) {
 
                         if (req.body.reportid) {
 
-                            var newreport = new report();
+                            var newreport = new Report();
                             newreport.formId = jsondata.reportid;
                             newreport.incidentDate = jsondata.incidentDate;
                             newreport.helpReceived = jsondata.helpReceived;

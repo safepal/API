@@ -1,6 +1,6 @@
 var mongoose = require("mongoose"), schema = mongoose.Schema;
 
-var report = schema({
+var ReportSchema = schema({
 	formId : {type : Number, required : true},
 	userid : Number, 
 	assaulttype : String,
@@ -20,4 +20,4 @@ var report = schema({
 });
 
 //export 
-module.exports = mongoose.model("report", report);
+module.exports = mongoose.model("Report", ReportSchema);
