@@ -7,7 +7,6 @@ var mongoose = require('mongoose');
 var path = require('path');
 var serveStatic = require('serve-static');
 var jwt =require('jsonwebtoken');
-var config = require('./config');
 var utils = require('./utils');
 
 //run configs

@@ -1,10 +1,10 @@
 var User = require('../models/user');
 var token   = require('../models/token');
 var jwt = require('jsonwebtoken');
-var config = require('../config');
+var utils = require('../utils');
 
 //super secret for creating tokens
-var superSecret = config.secret;
+var superSecret = utils.secret;
 
 var usersExport = module.exports = function(app, express){
    var usersRouter = express.Router();

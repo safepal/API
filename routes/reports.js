@@ -1,10 +1,7 @@
-var User = require('../models/user');
-var Partner = require('../models/partner');
 var Report  = require('../models/report');
 var token   = require('../models/token');
 var jwt = require('jsonwebtoken');
 var utils = require('../utils');
-var config = require('../config');
 
 //super secret for creating tokens
 var superSecret = utils.secret;
