@@ -1,20 +1,17 @@
 var User = require('../models/user');
-var Partner = require('../models/partner');
-var Report  = require('../models/report');
 var token   = require('../models/token');
 var jwt = require('jsonwebtoken');
-var utils = require('../utils');
 var config = require('../config');
 
 //super secret for creating tokens
-var superSecret = utils.secret;
+var superSecret = config.secret;
 
-var apiExport = module.exports = function(app, express){
-   var apiRouter = express.Router();
+var usersExport = module.exports = function(app, express){
+   var usersRouter = express.Router();
 
 
 //route for authenticating users
-apiRouter.post('/login', function(req, res){
+usersRouter.post('/login', function(req, res){
     //find the user
     //select the name username and password explicitly
     User.findOne({
@@ -62,7 +59,7 @@ apiRouter.post('/login', function(req, res){
 /*
 route for creating new users
 */
-apiRouter.route('/users')
+usersRouter.route('/users')
     //create a user (accessed at POST http://localhost:8000/api/users)
     .post(function(req, res){
         //create a new instance of the User model
@@ -101,7 +98,7 @@ apiRouter.route('/users')
     });
 
 //middleware to use for all requests
-// apiRouter.use(function(req, res, next){
+// usersRouter.use(function(req, res, next){
 
 //     //this is where we will authenticate users
 //     //check header or url parameters or post parameters for token
@@ -136,14 +133,14 @@ apiRouter.route('/users')
 //test route to make sure everything is working
 //accessed at GET http://localhost:8000/api
 
-apiRouter.get('/', function(req, res){
+usersRouter.get('/', function(req, res){
     res.json({ message: 'hooray! welcome to our api!'});
 });
 
 
 //more routes for our API will happen here
 
-apiRouter.route('/users/:user_id')
+usersRouter.route('/users/:user_id')
     //get the user with that id
     .post(function(req, res){
         User.findById(req.params.user_id, function(err, user){
@@ -188,5 +185,5 @@ apiRouter.route('/users/:user_id')
         });
     }); */
 
-    return apiRouter
+    return usersRouter
 };

@@ -3,36 +3,61 @@ var Partner = require('../models/partner');
 var Report  = require('../models/report');
 var token   = require('../models/token');
 var jwt = require('jsonwebtoken');
+var utils = require('../utils');
 var config = require('../config');
+
 //super secret for creating tokens
-var superSecret = config.secret;
+var superSecret = utils.secret;
 module.exports = function(app, express){
-   var reportRouter = express.Router();
+
+//grab router instance
+var reportRouter = express.Router();
 
 
-
-//route for authenticating users
+/*
+route for getting all reports
+*/
 reportRouter.post('/reports', function(req, res){
-    //find the user
-    //select the name username and password explicitly
-    Report.find({},function(err, reports){
+    //get all reports
+    Report.find().select('formId assaulttype school incidentDate details helpReceived visitedClinic assualter age location status submissionDate').exec(function(err, reports){
         if(err) throw error;
-
-        //no user with that username was found
+        console.log(err);
+        //if no reports found
         if(!reports){
-            res.json({
-                success: false,
-                message: 'Error fetching Reports.'
-            });
-        }else if(reports){
-            //check if password matches
-            res.json(reports);
+            res.json(utils.resultHandler(false, "", utils.reportsnotfound));
         }
+
+        else if(reports){
+            //return all reports
+            res.json(utils.resultHandler(true, reports, ""));
+        }
+    });
 });
+
+/*
+route for getting report with particular id
+*/
+reportRouter.post('/reports/:formId') 
+    .post(function(req, res){
+    //find the report
+    Report.findById(req.body.formId, function(err, report){
+        if(err) res.send(err);
+        console.log(err);
+        if (!report) {
+            res.json(utils.resultHandler(false, "", utils.reportsnotfound));
+        }
+
+        else{
+            res.json(utils.resultHandler(true, report, ""));
+        }
+    });
 });
 
 
-reportRouter.route('/report')
+/*
+route for creating new reports
+*/
+reportRouter.route('/reports/new')
     .post(function(req, res){
         //create a new instance of the report model
         var report = new Report({
@@ -46,29 +71,33 @@ reportRouter.route('/report')
             visitedClinic:    req.body.visitedClinic,
             assualter:        req.body.assualter,
             age:              req.body.age,
-            details:          req.body.details,
             location:         req.body.location,
             lat:              req.body.lat,
             lng:              req.body.lng,
             status:           req.body.status
         });
+
         report.save(function(err){
             //duplicate entry
             if(err){
             if(err.code == 11000)
-                return res.json({ success: false, message: 'Report already exists. '});
+                return res.json(utils.resultHandler(false, "", utils.duplicatereport));
             else
                 return res.send(err);
         }
-            res.json({ message: 'Report created'});
-        });
-    })
-    .get(function(req, res){
-        User.find(function(err, users){
-            if(err) throw(err);
-            res.json(users);
+            res.json(utils.resultHandler(true, utils.reportcreated, ""));
         });
     });
+
+
+/*
+route for deleting reports
+*/
+
+/*
+route for updating reports
+*/
+
 
     return reportRouter
 };
