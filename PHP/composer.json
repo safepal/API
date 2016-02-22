@@ -1,0 +1,19 @@
+{
+    "name": "safepal/api",
+    "description": "SafePal securely, confidentially and quickly connects survivors fo Gender-Based Violence (GBV) to medical, legal and other avenues of help",
+    "require": {
+        "maltyxx/bower": "^0.1.0",
+        "predis/predis": "^1.0",
+        "phing/phing": "^2.13",
+        "monolog/monolog": "^1.17",
+        "phpunit/phpunit": "^4.8",
+        "phploc/phploc": "^2.1",
+        "vlucas/phpdotenv": "^2.2"
+    },
+    "authors": [
+        {
+            "name": "SafePal Team",
+            "email": "joshua.okello@hotmail.com"
+        }
+    ]
+}
