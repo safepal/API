@@ -4,3 +4,5 @@ PHP/api/reports/addreport/config.inc.php
 PHP/api/reports/getreports/config.inc.php
 PHP/api/login/config.inc.php
 PHP/api/register/config.inc.php
+PHP/api/config.inc.php
+.gitignore
