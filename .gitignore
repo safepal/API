@@ -2,7 +2,7 @@
 PHP/.env.php
 PHP/api/reports/addreport/config.inc.php
 PHP/api/reports/getreports/config.inc.php
-PHP/api/login/config.inc.php
-PHP/api/register/config.inc.php
+PHP/api/users/login/config.inc.php
+PHP/api/users/register/config.inc.php
 PHP/api/config.inc.php
-.gitignore
+/.gitignore
