@@ -1,6 +1,6 @@
 {
     "name": "safepal/api",
-    "description": "SafePal securely, confidentially and quickly connects survivors fo Gender-Based Violence (GBV) to medical, legal and other avenues of help",
+    "description": "SafePal securely, confidentially and quickly connects survivors of Gender-Based Violence (GBV) to medical, legal and other avenues of help",
     "require": {
         "maltyxx/bower": "^0.1.0",
         "predis/predis": "^1.0",
@@ -10,10 +10,30 @@
         "phploc/phploc": "^2.1",
         "vlucas/phpdotenv": "^2.2"
     },
+    "autoload":{
+        "psr-4": {
+            "SafePal\\API\\": "api/src/",
+            "SafePal\\IVR\\": "ivr/src/",
+            "SafePal\\IVRGateWay\\": "ivr/src/",
+            "SafePal\\API\\Tests": "api/Tests/",
+            "SafePal\\IVR\\Tests": "ivr/Tests/",
+            "SafePal\\Utils\\": "Utils/",
+            "SafePal\\CallLog\\": "ivr/src/",
+            "AfricasTalking\\": "AfricasTalking/"
+        }
+    },
     "authors": [
         {
-            "name": "SafePal Team",
+            "name": "Joshua Okello",
             "email": "joshua.okello@hotmail.com"
+        },
+        {
+            "name": "Brian Gitta",
+            "email": "gittabrian@gmail.com"
+        },
+        {
+            "name": "Jjingo Kisakye",
+            "email": "jingowasaaka@gmail.com"
         }
     ]
 }
