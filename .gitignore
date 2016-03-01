@@ -1,7 +1,7 @@
 #files to exclude
-PHP/.env.php
-PHP/api/reports/addreport/config.inc.php
-PHP/api/reports/getreports/config.inc.php
-PHP/api/users/login/config.inc.php
-PHP/api/users/register/config.inc.php
-PHP/api/config.inc.php
+WEB/PHP/.env.php
+WEB/PHP/api/reports/addreport/config.inc.php
+WEB/PHP/api/reports/getreports/config.inc.php
+WEB/PHP/api/users/login/config.inc.php
+WEB/PHP/api/users/register/config.inc.php
+WEB/PHP/api/config.inc.php

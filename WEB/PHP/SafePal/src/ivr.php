@@ -37,7 +37,7 @@ class IVR
 	public function HangUp($msg = "Thank for using SafePal. Goodbye!"){
 		$response = '<?xml version="1.0" encoding="UTF-8"?>';
 	    $response .= '<Response>';
-	    $response .= '<Say'.$msg.'/>';
+	    $response .= '<Say>'.$msg.'</Say>';
 	    $response .= '<Reject/>';
 	    $response .= '</Response>';
 
@@ -57,7 +57,7 @@ class IVR
 	}
 
 	//send and get user response
-	public function SendResponse($msg, $getdigits == true){
+	public function SendResponse($msg, $getdigits = true){
 		//construct response
 		$response = '<?xml version="1.0" encoding="UTF-8"?>';
 		$response .= '<Response>';
@@ -68,7 +68,7 @@ class IVR
 
 		else{
 			$response .= '<GetDigits  timeout="30" finishOnKey="#">';
-			$response .= '<Say'.$msg.'/>';
+			$response .= '<Say>'.$msg.'</Say>';
 			$response .= '<GetDigits/>';
 		}
 
@@ -168,6 +168,7 @@ class IVR
 
 	//get user report
 	public function GetCallerReport($callerinput){
+
 		$lastcallstate = $this->GetLastCallState();
 		$currentcallstate = $this->GetCurrentCallState();
 
@@ -323,6 +324,8 @@ class IVR
 	private function SetupSession() {
 
 		$dt = new \DateTime();
+		$this->mainlogger->addError($dt);
+		$this->mainlogger->addError($redis);
 		$this->redis->hmset($this->rediskey,
 				[
 						"sessionstart" => $dt->getTimestamp(),

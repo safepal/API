@@ -12,13 +12,7 @@
     },
     "autoload":{
         "psr-4": {
-            "SafePal\\API\\": "api/src/",
-            "SafePal\\IVR\\": "ivr/src/",
-            "SafePal\\IVRGateWay\\": "ivr/src/",
-            "SafePal\\API\\Tests": "api/Tests/",
-            "SafePal\\IVR\\Tests": "ivr/Tests/",
-            "SafePal\\Utils\\": "Utils/",
-            "SafePal\\CallLog\\": "ivr/src/",
+            "SafePal\\": "SafePal/src/",
             "AfricasTalking\\": "AfricasTalking/"
         }
     },

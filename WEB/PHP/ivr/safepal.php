@@ -1,5 +1,6 @@
 <?php 
-require_once __DIR__.'/vendor/autoload.php'; //autoload all app namespaces/classes
+require_once '../vendor/autoload.php'; //autoload all app namespaces/classes
+require '../vendor/predis/predis/autoload.php';
 
 //imports
 use Monolog\Handler\StreamHandler;
@@ -7,14 +8,14 @@ use Monolog\Logger;
 use Monolog\Formatter\LineFormatter;
 use AfricasTalking\AfricasTalkingGateway;
 use SafePal\Utils;
-use SafePal\IVR;
+use SafePal\ivr; 
 
 //predis
 Predis\Autoloader::register(); //register predis
 
 
 //dotenv
-$dotenv = new Dotenv\Dotenv(__DIR__, ".env.php");
+$dotenv = new Dotenv\Dotenv('../', ".env.php");
 $dotenv->load();
 
 /*
@@ -56,7 +57,7 @@ $aitNumber = $_POST['destinationNumber'];
 $redis = new Predis\Client(array("auth" => getenv('REDIS_AUTH')));
 
 //ivr
-$ivr = new IVR($redis, $callerNumber, $sessionID, new AfricasTalkingGateway(getenv('AIT_USERNAME'),getenv('AIT_KEY')), $aitNumber, $mainlogger);
+$ivr = new ivr($redis, $callerNumber, $sessionID, new AfricasTalkingGateway(getenv('AIT_USERNAME'),getenv('AIT_KEY')), $aitNumber, $mainlogger);
 
 if ($isCallActive == 1) {
 	//we are rejecting all incoming calls and calling number back
@@ -64,8 +65,16 @@ if ($isCallActive == 1) {
 
 		try {
 
-			$ivr->HangUp(); //hangup call
-			isset($callerNumber) ? $ivr->CallBackUser() : exit(0); //try to call back user immediately
+			$ivr->HangUp("Thank you for calling SafePal. We'll call you back shortly."); //hangup call
+
+			/*$x = new AfricasTalkingGateway(getenv('AIT_USERNAME'),getenv('AIT_KEY'));
+			$res = $x->call($aitNumber, $callerNumber); */
+
+			$x = $ivr->CallBackUser();
+
+			$mainlogger->error($x);
+			$mainlogger->addError($x);
+			//isset($callerNumber) ? $ivr->CallBackUser() : exit(0); //try to call back user immediately
 		} catch (Exception $e) {
 			$mainlogger->error($e->getTraceAsString());
 		}
