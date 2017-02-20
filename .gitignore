@@ -1,0 +1,9 @@
+#exclude everything
+*
+#Except these files
+!.gitignore
+!Procfile
+!README.md
+!src/
+!composer.json
+!index.php
