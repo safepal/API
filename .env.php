@@ -29,5 +29,5 @@ FAILURE_STATUS= "Failed";
 FAILURE_REPORT_MSG = "Report submission failed";
 
 /** MISC **/
-DISTANCE_THRESHOLD = 3.0; //distance threshold in km
+DISTANCE_THRESHOLD = "3.0"; //distance threshold in km
 ?>
