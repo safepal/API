@@ -61,7 +61,7 @@ $app->post('/test', function (Request $req, Response $res){
 	
 	$pd = null; */
 	$d = $req->getBody();
-	return $res->withJson(array("test" => "testing"));
+	return $res->withJson(array("test" => $d['name']));
 });
 
 //run app
