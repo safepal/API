@@ -94,6 +94,8 @@ $app->post('/test', function (Request $req, Response $res){
 		return $res->withJson(array("state" => "done"));
 	}
 
+	var_dump($rest);
+
 });
 
 //run app
