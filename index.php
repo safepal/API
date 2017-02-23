@@ -40,11 +40,11 @@ $app->get('/', function (Request $req, Response $res){
 
 $app->post('/test', function (Request $req, Response $res){
 
-	if (empty($req->getParsedBody())) {
+	/*if (empty($req->getParsedBody())) {
 		throw new InvalidArgumentException("Empty request");
-	}
+	} */
 
-	$data = json_decode($req->getParsedBody());
+	/*$data = json_decode($req->getParsedBody());
 
 	$pd = new PDO("mysql:host=".getenv('HOST').";dbname=".getenv('DB').",".getenv('DBUSER').",".getenv('DBPWD'));
 	$pd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -59,7 +59,9 @@ $app->post('/test', function (Request $req, Response $res){
 		$res->withJson(json_encode($nCSO));
 	}
 	
-	$pd = null;
+	$pd = null; */
+
+	$res->withJson($req->getParsedBody());
 });
 
 //run app
