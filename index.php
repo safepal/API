@@ -9,7 +9,7 @@ use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
 //SafePal
-use \SafePal\SafePal;
+//use \SafePal\SafePal;
 
 //dotenv
 $dotenv = new Dotenv\Dotenv(dirname(__FILE__), '.env.php');
@@ -19,7 +19,7 @@ $dotenv->load();
 $app = new \Slim\App;
 
 //DI container
-$dicontainer = $app->getContainer();
+//$dicontainer = $app->getContainer();
 
 //Monolog
 /*$dicontainer['logger'] = function ($logger){
@@ -38,7 +38,7 @@ $app->get('/', function (Request $req, Response $res){
 	return $res;
 });
 
-$app->get('/testing', function (Request $req, Response $res){
+$app->get('testing', function (Request $req, Response $res){
 	$res->getBody()->write("SafePal API v1.");
 	return $res;
 });
