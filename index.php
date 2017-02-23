@@ -22,15 +22,15 @@ $app = new \Slim\App;
 $dicontainer = $app->getContainer();
 
 //Monolog
-$dicontainer['logger'] = function ($logger){
+/*$dicontainer['logger'] = function ($logger){
 	$logger = new \Monolog\Logger(getenv('LOGGER'));
 	$file = new \Monolog\Handler\StreamHandler(getenv('STREAM_HANDLER'));
 	$logger->pushHandler($file);
 	return $logger;
-};
+};*/
 
 //middleware to handle CSRF
-$app->add(new \Slim\Csrf\Guard);
+//$app->add(new \Slim\Csrf\Guard);
 
 ///ROOT
 $app->get('/', function (Request $req, Response $res){
