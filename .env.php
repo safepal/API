@@ -4,7 +4,7 @@ DISPLAYERRORDETAILS = true;
 ADDCONTENTLENGTHHEADER = false;
 
 /** DB config **/
-CLEARDB_DATABASE_URL = "cleardb-animate-38020";
+//CLEARDB_DATABASE_URL = "cleardb-animate-38020";
 HOST = "127.0.0.1";
 DBUSER = "admin_safepal";
 DB = "safepaldb";

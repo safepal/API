@@ -42,15 +42,18 @@ $app->register(new Herrera\Pdo\PdoServiceProvider(),
                )
 ); */
 
-//mysql
-$url = parse_url(getenv("CLEARDB_DATABASE_URL"));
+//MySQL
+$dicontainer['db'] = function ($db){
+	$db = parse_url(getenv('CLEARDB_DATABASE_URL'));
+	$server = $db["host"];
+	$username = $db["user"];
+	$password = $db["pass"];
+	$database = substr($db["path"], 1);
 
-$server = $url["host"];
-$username = $url["user"];
-$password = $url["pass"];
-$db = substr($url["path"], 1);
-
-$conn = new mysqli($server, $username, $password, $db); 
+	//$conn = new PDO("mysql:host=" . $server . ";dbname=" . $database . "," .$username. "," . $password);
+	$conn = new mysqli($server, $username, $password, $database);
+    return $conn;
+};
 
 //middleware to handle CSRF
 //$app->add(new \Slim\Csrf\Guard);
