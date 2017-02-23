@@ -18,15 +18,15 @@ ADD_REPORT = "INSERT INTO incident_report_details(survivor_gender, survivor_date
 GET_CSO = "SELECT * FROM cso_details";
 
 /** JSON RESPONSE MESSAGES **/
+STATUS = "status"; //refactor
+MSG = "msg";
 //success
 SUCCESS_STATUS = "Success";
 SUCCESS_REPORT_MSG = "Report submitted successfully";
-SUCCESS_RESPONSE = array("status" => SUCCESS_STATUS, "msg" => SUCCESS_REPORT_MSG);
 
 //failure
 FAILURE_STATUS= "Failed";
 FAILURE_REPORT_MSG = "Report submission failed";
-FAILURE_RESPONSE = array("status" => FAILURE_STATUS, "msg" => FAILURE_REPORT_MSG);
 
 /** MISC **/
 DISTANCE_THRESHOLD = 3.0; //distance threshold in km
