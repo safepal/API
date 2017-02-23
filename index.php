@@ -8,8 +8,11 @@ require_once "vendor/autoload.php";
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
+//Posgresql
+//use Herrera\Pdo as pdo;
+
 //SafePal
-//use \SafePal\SafePal;
+use \SafePal\SafePal;
 
 //dotenv
 $dotenv = new Dotenv\Dotenv(dirname(__FILE__), '.env.php');
@@ -29,6 +32,26 @@ $dicontainer['logger'] = function ($logger){
 	return $logger;
 };
 
+//psgre
+/*$dbopts = parse_url(getenv('DB_URL'));
+$app->register(new Herrera\Pdo\PdoServiceProvider(),
+               array(
+                   'pdo.dsn' => 'pgsql:dbname='.ltrim($dbopts["path"],'/').';host='.$dbopts["host"] . ';port=' . $dbopts["port"],
+                   'pdo.username' => $dbopts["user"],
+                   'pdo.password' => $dbopts["pass"]
+               )
+); */
+
+//mysql
+$url = parse_url(getenv("CLEARDB_DATABASE_URL"));
+
+$server = $url["host"];
+$username = $url["user"];
+$password = $url["pass"];
+$db = substr($url["path"], 1);
+
+$conn = new mysqli($server, $username, $password, $db); 
+
 //middleware to handle CSRF
 //$app->add(new \Slim\Csrf\Guard);
 
@@ -39,13 +62,14 @@ $app->get('/', function (Request $req, Response $res){
 });
 
 $app->post('/test', function (Request $req, Response $res){
-	
+
 	$data = $req->getParsedBody();
 
 	if (empty($data)) {
 		throw new InvalidArgumentException("Empty request");
 	} 
 
+	/*
 	$pd = new PDO("mysql:host=".getenv('HOST').";dbname=".getenv('DB').",".getenv('DBUSER').",".getenv('DBPWD'));
 	$pd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$pd->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
@@ -59,7 +83,14 @@ $app->post('/test', function (Request $req, Response $res){
 		$res->withJson(json_encode($nCSO));
 	}
 	
-	$pd = null; 
+	$pd = null; */
+	$q = "INSERT INTO Apitest VALUES (".$data['name'].")";
+	$rest = $this->conn->query($q);
+
+	if ($rest) {
+		return $this->res->withJson(array("state" => "done"));
+	}
+
 });
 
 //run app
