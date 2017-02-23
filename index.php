@@ -88,10 +88,10 @@ $app->post('/test', function (Request $req, Response $res){
 	
 	$pd = null; */
 	$q = "INSERT INTO Apitest VALUES (".$data['name'].")";
-	$rest = $this->conn->query($q);
+	$rest = $this->db->query($q);
 
 	if ($rest) {
-		return $this->res->withJson(array("state" => "done"));
+		return $res->withJson(array("state" => "done"));
 	}
 
 });
