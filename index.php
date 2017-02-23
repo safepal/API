@@ -60,7 +60,7 @@ $app->post('/test', function (Request $req, Response $res){
 	}
 	
 	$pd = null; */
-	$d = $req->getBody();
+	$d = $req->getParsedBody();
 	return $res->withJson(array("test" => $d['name']));
 });
 
