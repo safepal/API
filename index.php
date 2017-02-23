@@ -32,83 +32,96 @@ $dicontainer['logger'] = function ($logger){
 //middleware to handle CSRF
 $app->add(new \Slim\Csrf\Guard);
 
-/*** REPORTS ***/
-//add reports
-$app->post('/api/v1/reports/add', function (Request $req, Response $res){
-	$report = $req->getParsedBody();
-
-	if (!empty($report)) {
-    	try {
-    		$rep = new \SafePal\SafePal\SafePalReport;
-    		$rep->AddReport($report);
-
-    		//return status
-    		return $res->withJson(array(getenv('SUCCESS_RESPONSE'));
-
-    	} catch (PDOException $e) {
-    		$this->logger->addInfo($e);
-
-    		//return status
-    		return $res->withJson(getenv('FAILURE_RESPONSE'));
-    	}
-	}
+///ROOT
+$app->get('/', function (Request $req, Response $res){
+	$res->getBody()->write("SafePal API v1.");
+	return $res;
 });
 
-//get all reports
-$app->post('/api/v1/reports/all', function (Request $req, Response $res){
+$app->group('/api/v1', function () use ($app){
 
-});
+	/*** AUTH ***/
 
-//return report by id
-$app->get('/api/v1/reports/{rid}', function (Request $req, Response $res){
-	$rID = $req->getAttribute('rid');
-});
+	/*** REPORTS ***/
+	//add reports
+	$app->post('reports/add', function (Request $req, Response $res){
+		$report = $req->getParsedBody();
 
-//delete report
-$app->post('/api/v1/reports/del/{rid}', function (Request $req, Response $res){
-	$rID = $req->getAttribute('rid');
-});
+		if (!empty($report)) {
+	    	try {
+	    		$rep = new \SafePal\SafePal\SafePalReport;
+	    		$rep->AddReport($report);
 
-/*** USERS ***/
+	    		//return status
+	    		return $res->withJson(array(getenv('SUCCESS_RESPONSE'));
 
-/*** HEALTH CENTRES/CSOs ***/
+	    	} catch (PDOException $e) {
+	    		$this->logger->addInfo($e);
 
-//get nearest health centres based on GPS
-$app->post('/api/v1/locations/nearest', function (Request $req, Response $res){
-
-	$gps = $req->getParsedBody();
-
-	//quick check
-	if (!empty($gps)) {
-		$location = new SafePalCSO;
-		$dist = new SafePalMapping;
-
-		$centres = $location->GetNearestCSO($gps);
-		
-		$nearest = new array();
-
-		//**note: consider refactoring here
-		if (sizeof($centres) > 0) {
-
-			for ($centres as $key => $value) {
-				//calculate distance -- could be optional since we are sending back centres in the same district
-
-				//construct result array
-				array_push($nearest, array(
-					"cso_name" => $centres["cso_name"], 
-					"cso_location" => $centres["cso_location"], 
-					"cso_distance" => $dist->GetDistance($gps['reporter_lat'], $gps['reporter_lat']), $centres['cso_latitude'], $centres['cso_longtitude']) * (int) 1.61, 
-					"cso_phone_number" => $centres["cso_phone_number"]));
-			}
+	    		//return status
+	    		return $res->withJson(getenv('FAILURE_RESPONSE'));
+	    	}
 		}
-		//return json
-		return $res->withJson(sort($nearest));
-	}
+	});
 
+	//get all reports
+	$app->post('reports/all', function (Request $req, Response $res){
+
+	});
+
+	//return report by id
+	$app->get('reports/{rid}', function (Request $req, Response $res){
+		$rID = $req->getAttribute('rid');
+	});
+
+	//delete report
+	$app->post('reports/del/{rid}', function (Request $req, Response $res){
+		$rID = $req->getAttribute('rid');
+	});
+
+
+
+
+	/*** USERS ***/
+
+	/*** HEALTH CENTRES/CSOs ***/
+
+	//get nearest health centres based on GPS
+	$app->post('locations/nearest', function (Request $req, Response $res){
+
+		$gps = $req->getParsedBody();
+
+		//quick check
+		if (!empty($gps)) {
+			$location = new SafePalCSO;
+			$dist = new SafePalMapping;
+
+			$centres = $location->GetNearestCSO($gps);
+			
+			$nearest = new array();
+
+			//**note: consider refactoring here
+			if (sizeof($centres) > 0) {
+
+				for ($centres as $key => $value) {
+					//calculate distance -- could be optional since we are sending back centres in the same district
+
+					//construct result array
+					array_push($nearest, array(
+						"cso_name" => $centres["cso_name"], 
+						"cso_location" => $centres["cso_location"], 
+						"cso_distance" => $dist->GetDistance($gps['reporter_lat'], $gps['reporter_lat']), $centres['cso_latitude'], $centres['cso_longtitude']) * (int) 1.61, 
+						"cso_phone_number" => $centres["cso_phone_number"]));
+				}
+			}
+			//return json
+			return $res->withJson(sort($nearest));
+		}
+
+	});
+
+	/*** IVR ***/
 });
-
-/*** IVR ***/
-
 
 //run app
 $app->run();

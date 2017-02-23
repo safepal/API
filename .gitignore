@@ -2,9 +2,11 @@
 *
 #Except these files
 !.gitignore
+!.env.php
 !Procfile
 !README.md
 !src/
 !composer.json
 !composer.lock
 !index.php
+!logs/
