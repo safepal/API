@@ -38,6 +38,11 @@ $app->get('/', function (Request $req, Response $res){
 	return $res;
 });
 
+$app->get('/testing', function (Request $req, Response $res){
+	$res->getBody()->write("SafePal API v1.");
+	return $res;
+});
+
 $app->post('/test', function (Request $req, Response $res){
 
 	if (empty($req->getParsedBody())) {
