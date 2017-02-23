@@ -19,15 +19,15 @@ $dotenv->load();
 $app = new \Slim\App;
 
 //DI container
-//$dicontainer = $app->getContainer();
+$dicontainer = $app->getContainer();
 
 //Monolog
-/*$dicontainer['logger'] = function ($logger){
+$dicontainer['logger'] = function ($logger){
 	$logger = new \Monolog\Logger(getenv('LOGGER'));
 	$file = new \Monolog\Handler\StreamHandler(getenv('STREAM_HANDLER'));
 	$logger->pushHandler($file);
 	return $logger;
-};*/
+};
 
 //middleware to handle CSRF
 //$app->add(new \Slim\Csrf\Guard);
@@ -35,11 +35,6 @@ $app = new \Slim\App;
 ///ROOT
 $app->get('/', function (Request $req, Response $res){
 	$res->getBody()->write("SafePal API v1.5");
-	return $res;
-});
-
-$app->get('/testing', function (Request $req, Response $res){
-	$res->getBody()->write("SafePal API v1.");
 	return $res;
 });
 
@@ -57,8 +52,8 @@ $app->post('/test', function (Request $req, Response $res){
 	$pd->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, 'SET NAMES utf8');
 
 	$nCSO = $pd->prepare("INSERT INTO Apitest VALUES (?)")->execute($data['name']);
-	//$pd->query($nCSO);
-	//$result = $pd->execute(filter_var_array($nCSO));
+	$pd->query($nCSO);
+	$result = $pd->execute(filter_var_array($nCSO));
 
 	if ($nCSO) {
 		$res->withJson(json_encode($nCSO));
