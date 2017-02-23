@@ -1,6 +1,6 @@
 <?php
 
-session_start();
+//session_start();
 
 require_once "vendor/autoload.php";
 
@@ -34,11 +34,11 @@ $app = new \Slim\App;
 
 ///ROOT
 $app->get('/', function (Request $req, Response $res){
-	$res->getBody()->write("SafePal API v1.");
+	$res->getBody()->write("SafePal API v1.5");
 	return $res;
 });
 
-$app->get('testing', function (Request $req, Response $res){
+$app->get('/testing', function (Request $req, Response $res){
 	$res->getBody()->write("SafePal API v1.");
 	return $res;
 });
