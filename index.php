@@ -60,7 +60,7 @@ $app->post('/test', function (Request $req, Response $res){
 	}
 	
 	$pd = null; */
-	$d = $req->getParsedBody();
+	$d = $res->getParsedBody();
 	var_dump($d);
 });
 
