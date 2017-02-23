@@ -54,8 +54,7 @@ $app->post('/test', function (Request $req, Response $res){
 	$pd = new PDO("mysql:host=".getenv('HOST').";dbname=".getenv('DB').",".getenv('DBUSER').",".getenv('DBPWD'));
 	$pd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$pd->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-	$pd->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-	$pd->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8');
+	$pd->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, 'SET NAMES utf8');
 
 	$nCSO = $pd->prepare("INSERT INTO Apitest VALUES (?)")->execute($data['name']);
 	//$pd->query($nCSO);
