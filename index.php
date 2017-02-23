@@ -61,7 +61,7 @@ $app->post('/test', function (Request $req, Response $res){
 	
 	$pd = null; */
 
-	$res->withJson($req->getParsedBody());
+	return $res->withJson($req->getParsedBody());
 });
 
 //run app
