@@ -100,5 +100,4 @@ $app->post('/test', function (Request $req, Response $res){
 
 //run app
 $app->run();
-
 ?>
