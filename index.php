@@ -87,7 +87,7 @@ $app->post('/test', function (Request $req, Response $res){
 	}
 	
 	$pd = null; */
-	$q = "INSERT INTO Apitest VALUES (".$data['name'].")";
+	$q = "INSERT INTO Apitest (names) VALUES (".$data['name'].")";
 	$rest = $this->db->query($q);
 
 	if ($rest) {
