@@ -31,7 +31,8 @@ final class SafePalMapping
 	}
 
 	public static function GetDistance($userlat, $userlng, $destlat, $destlng){
-		//calculate distance -- 
+
+		//calculate distance -- given user location and available CSOs
 
 		$theta = $userlng - $destlng;
 
