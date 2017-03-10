@@ -1,9 +1,5 @@
 ##ignore everything else
 *
-vendor/
-.env.php
-composer.lock
-logs/
 
 ##Except the following
 !.gitignore
