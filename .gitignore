@@ -1,15 +1,14 @@
 #Except files
 !.gitignore
-!.env.php
 !Procfile
 !README.md
-!src/
+!src/*
 !composer.json
 !composer.lock
 !index.php
-!logs/
+!logs/*
 !.htaccess
-!tests/
+!tests/*
 
 #exclude everything else
 *
