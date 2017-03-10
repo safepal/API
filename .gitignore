@@ -5,8 +5,8 @@
 !.gitignore
 !Procfile
 !README.md
-!src/*
-!tests/*
+!src/
+!tests/
 !composer.json
 !index.php
 !.htaccess
