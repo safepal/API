@@ -1,62 +1,58 @@
 <?php
-
-//session_start();
+// Start PHP session
+session_start();
 
 require_once "vendor/autoload.php";
 
 //PSR
 use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
-
-//Posgresql
-//use Herrera\Pdo as pdo;
+use Slim\Csrf as csrf;
 
 //SafePal
-use \SafePal\SafePal;
+use SafePal as pal;
 
-//dotenv
-$dotenv = new Dotenv\Dotenv(dirname(__FILE__), '.env.php');
-$dotenv->load();
+//ENV
+/*$dotenv = new Dotenv\Dotenv(__DIR__);
+$dotenv->load(); */
 
-//init slim
-$app = new \Slim\App;
+$config = ['settings'=> ['displayErrorDetails' => true, 'debug' => true,]];
+
+//INIT SLIM
+$app = new \Slim\App($config);
 
 //DI container
 $dicontainer = $app->getContainer();
 
 //Monolog
 $dicontainer['logger'] = function ($logger){
-	$logger = new \Monolog\Logger(getenv('LOGGER'));
+	$log = new \Monolog\Logger(getenv('LOGGER'));
 	$file = new \Monolog\Handler\StreamHandler(getenv('STREAM_HANDLER'));
-	$logger->pushHandler($file);
-	return $logger;
+	$log->pushHandler($file);
+	return $log;
 };
 
-//psgre
-/*$dbopts = parse_url(getenv('DB_URL'));
-$app->register(new Herrera\Pdo\PdoServiceProvider(),
-               array(
-                   'pdo.dsn' => 'pgsql:dbname='.ltrim($dbopts["path"],'/').';host='.$dbopts["host"] . ';port=' . $dbopts["port"],
-                   'pdo.username' => $dbopts["user"],
-                   'pdo.password' => $dbopts["pass"]
-               )
-); */
+//auth
+$dicontainer['auth'] = function ($d){
+	$auth = new pal\SafePalAuth;
+	return $auth;
+};
 
-//MySQL
-$dicontainer['db'] = function ($db){
-	$db = parse_url(getenv('CLEARDB_DATABASE_URL'));
-	$server = $db["host"];
-	$username = $db["user"];
-	$password = $db["pass"];
-	$database = substr($db["path"], 1);
-
-	//$conn = new PDO("mysql:host=" . $server . ";dbname=" . $database . "," .$username. "," . $password);
-	$conn = new mysqli($server, $username, $password, $database);
-    return $conn;
+//reports
+$dicontainer['reports'] = function ($rp){
+	return new pal\SafePalReport();
 };
 
 //middleware to handle CSRF
-//$app->add(new \Slim\Csrf\Guard);
+//$app->add(new csrf\Guard);
+
+$app->add(function($req, $res, $next){
+	if (!$req->isXhr()) {
+		return $next($req, $res);
+	}
+});
+
+
 
 ///ROOT
 $app->get('/', function (Request $req, Response $res){
@@ -64,40 +60,103 @@ $app->get('/', function (Request $req, Response $res){
 	return $res;
 });
 
-$app->post('/test', function (Request $req, Response $res){
+/// API V1
+$app->group('/api/v1', function () use ($app) {
 
-	$data = $req->getParsedBody();
+    /*** AUTH ***/
+    $app->group('/tokens', function () use ($app){
+    	
+    	//get token
+    	$app->get('/newtoken', function (Request $req, Response $res) use ($app){
 
-	if (empty($data)) {
-		throw new InvalidArgumentException("Empty request");
-	} 
+    		$user = $req->getHeaderLine('userid');
 
-	/*
-	$pd = new PDO("mysql:host=".getenv('HOST').";dbname=".getenv('DB').",".getenv('DBUSER').",".getenv('DBPWD'));
-	$pd->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	$pd->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-	$pd->setAttribute(PDO::MYSQL_ATTR_INIT_COMMAND, 'SET NAMES utf8');
+    		if (!empty($user)) {
 
-	$nCSO = $pd->prepare("INSERT INTO Apitest VALUES (?)")->execute($data['name']);
-	$pd->query($nCSO);
-	$result = $pd->execute(filter_var_array($nCSO));
+    			$auth = $this->get('auth');
 
-	if ($nCSO) {
-		$res->withJson(json_encode($nCSO));
-	}
-	
-	$pd = null; */
-	$q = "INSERT INTO Apitest (names) VALUES (".$data['name'].")";
-	$rest = $this->db->query($q);
+    			if (!$auth->ValidateUser($user)) {
+    				return $res->withJson(array("status" => "failure", "msg" => "invalid user"));
+    			}
 
-	if ($rest) {
-		return $res->withJson(array("state" => "done"));
-	}
+    			$token = $auth->GetToken($user);
 
-	var_dump($rest);
+    			return $res->withJson(array("status" => "success", "token" => $token));
+    		} 
+    	});
 
+
+    	//check token
+    	$app->post('/checktoken', function (Request $req, Response $res) use ($app){
+    		$token = $req->getParsedBody()['token'];
+
+    		if (empty($token)) {
+    			return $res->withJson(array("status" => "failure", "msg" => "'token' missing in your request"));
+    		}
+
+    		$tokenExists = $this->auth->CheckToken($token);
+
+    		return $res->withJson(array("tokenstatus" => ($tokenExists ? "token is valid" : "invalid token")));
+    	});
+
+	});
+
+	/*** REPORTS ***/
+	$app->group('/reports', function() use ($app) {
+
+		//add new reports
+		$app->post('/addreport', function(Request $req, Response $res) use ($app){
+			$report = $req->getParsedBody();
+			$user = $req->getHeaderLine('userid');
+
+			if (empty($report['token'])) {
+				throw new InvalidArgumentException("No token provided");
+			}
+
+			$tokenExists = $this->auth->CheckToken($report['token'], $user);
+
+			if (!$tokenExists) {
+				return $res->withJson(array("status" => "failure", "msg" => "invalid token"));
+			}
+
+			//add report
+			$result = $this->reports->AddReport($report);
+
+			return ($result['spid']) ? $res->withJson(array("status" => "success", "msg" => "Report added successfully!", "casenumber" => $result['spid'], "csos" => $result['csos'])) : $res->withJson(array("status" => "failure", "msg" => "Failed to add report"));
+
+		});
+
+        //get all reports
+        $app->post('/all', function (Request $req, Response $res) use ($app){
+        	$token = $req->getParsedBody()['token'];
+        	$user = $req->getHeaderLine('userid');
+
+        	$tokenExists = $this->auth->CheckToken($token, $user);
+
+        	if (!$tokenExists) {
+				return $res->withJson(array("status" => "failure", "msg" => "invalid token"));
+			}
+
+			$allreports = $this->reports->GetAllReports();
+
+			return (sizeof($allreports) > 0) ? $res->withJson(array("status" => "success", "reports" => $allreports)): $res->withJson(array("status" => "failure", "reports" => NULL));
+
+        });
+	});
+
+	/*** CSOs ***/
+
+	/*** USERS ***/
 });
+//->add(); -- add middleware to run auth
 
-//run app
+function IsRequestEmpty($reqData){
+	if (empty($reqData)) {
+		throw new InvalidArgumentException("Empty request");
+	}
+}
+
+//run api app
 $app->run();
+
 ?>

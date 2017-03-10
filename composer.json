@@ -16,11 +16,14 @@
         "phpunit/phpunit": "^5.7",
         "willdurand/geocoder": "^3.3",
         "php-http/httplug": "^1.1",
-        "slim/pdo": "^1.10"
+        "slim/pdo": "^1.10",
+        "firebase/php-jwt": "^4.0",
+        "phing/phing": "^2.16",
+        "predis/predis": "^1.1"
     }, 
     "autoload": {
         "psr-4" : {
-            "SafePal\\" : "src/"
+            "SafePal\\" : "src/SafePal"
         }
     }
 }
