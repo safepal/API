@@ -3,12 +3,10 @@
 
 ##Except the following
 !.gitignore
-!.env.php
 !Procfile
 !README.md
-!src/
+!src/*
+!tests/*
 !composer.json
-!composer.lock
 !index.php
-!logs/
 !.htaccess
