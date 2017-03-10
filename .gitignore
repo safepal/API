@@ -1,6 +1,4 @@
-#exclude everything
-*
-#Except these files
+#Except files
 !.gitignore
 !.env.php
 !Procfile
@@ -11,3 +9,7 @@
 !index.php
 !logs/
 !.htaccess
+!tests/
+
+#exclude everything else
+*
