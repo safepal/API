@@ -1,31 +1,25 @@
 <?php 
 namespace SafePal;
 
-require_once "vendor/autoload.php";
-
 use Predis as redis;
 
 //register Redis
 redis\Autoloader::register();
 
-//dotenv
-/*$dotenv = new Dotenv\Dotenv(dirname(__FILE__), '.env.php');
-$dotenv->load(); */
-
 /**
-* 
+* Handles all database work/interaction
 */
 final class SafePalDB 
 {
 	protected $pdo;
-	protected $cso;
 	protected $redisclient;
+	protected $cleardb;
 
 	function __construct()
 	{	
-		//pdo
-		//$this->pdo = new PDO("mysql:host=".getenv('HOST').";dbname=".getenv('DB').",".getenv('DBUSER').",".getenv('DBPWD'));
-		$this->pdo = new \PDO('mysql:host=localhost;dbname=safepaldb;charset=utf8','root');
+		//$this->pdo = new \PDO('mysql:host='.getenv('HOST').';dbname='.getenv('DB').';port='.getenv('PORT').';charset=utf8',''.getenv('DBUSER'));
+		$cleardb = parse_url(getenv("CLEARDB_DATABASE_URL"));
+		$this->pdo = new \PDO("mysql:host=".$cleardb['host'].";dbname=".substr($cleardb["path"], 1).";charset=utf8",$cleardb['user'], $cleardb['pass']);
 		$this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 		$this->pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 		$this->pdo->setAttribute(\PDO::MYSQL_ATTR_INIT_COMMAND, "SET NAMES 'utf8'");
@@ -34,7 +28,7 @@ final class SafePalDB
 	//check if user exists
 	public function CheckUser($userid){
 
-		$user = $this->pdo->prepare("SELECT id FROM auth WHERE userid = :userid");
+		$user = $this->pdo->prepare(getenv('CHECKUSER_QUERY'));
 		$user->execute(array("userid" => $userid));
 		$result = $user->fetchColumn();
 
@@ -48,39 +42,42 @@ final class SafePalDB
 	}
 
 	//add report to db
-	private function AddReport($report, $prefix = "SPM"){
+	private function AddReport($report){
 		$result = null;
 		$nearbycsos = array();
 
-		$q = "INSERT INTO incident_report_details(survivor_gender, survivor_date_of_birth, unique_case_number, incident_type, incident_location, incident_date_and_time, incident_description, incident_reported_by, reporter_lat, reporter_long, survivor_contact_phone_number, survivor_contact_email, report_source) VALUES (:survivor_gender, :survivor_date_of_birth, :prefix, :incident_type, :incident_location, :incident_date_and_time, :incident_description, :incident_reported_by, :reporter_lat, :reporter_long, :survivor_contact_phone_number, :survivor_contact_email, :report_source)";
+		//- location data
+		$mapping = new SafePalMapping;
+		$district = $mapping->GetLocationDistrict($report['latitude'], $report['longitude']);
+
+		$query = getenv('ADD_REPORT_QUERY_1').' VALUES '.getenv('ADD_REPORT_QUERY_2');
 
 		if (!empty($report)) {
 			$query_params = array(
-						'survivor_gender' => $report['survivor_gender'],
-				        'survivor_date_of_birth' => $report['survivor_date_of_birth'],
-				        'prefix' => $prefix,
-				        'incident_type' => $report['incident_type'],
-				        'incident_location' => $report['incident_location'],
-				        'incident_date_and_time' => $report['incident_date_and_time'],
-				        'incident_description' => $report['incident_description'],
-				        'incident_reported_by' => $report['incident_reported_by'],
-				    	'reporter_lat' => $report['reporter_lat'],
-				    	'reporter_long' => $report['reporter_long'],
-				    	'survivor_contact_phone_number' => $report['survivor_contact_phone_number'],
-				    	'survivor_contact_email' => $report['survivor_contact_email'],
+						'type' => $report['type'],
+				        'gender' => $report['gender'],
+				        'reporter' => $report['reporter'],
+				        'district' => $district,
+				        'latitude' => $report['latitude'],
+				        'longitude' => $report['longitude'],
+				        'location' => $district,
+				        'reportDate' => $report['reportDate'],
+				        'incident_date' => $report['incident_date'],
+				    	'perpetuator' => $report['perpetuator'],
+				    	'age' => $report['age'],
+				    	'contact' => $report['contact'],
+				    	'details' => $report['details'],
 				    	'report_source' => $report['report_source'],
 						);
 
-			$stmt = $this->pdo->prepare($q);
+			$stmt = $this->pdo->prepare($query);
 
 			$res = $stmt->execute(filter_var_array($query_params));
 
-			($res) ? ($result['spid'] = $prefix."{$this->pdo->lastInsertId()}") : ($result['spid'] = null);
+			($res) ? ($result['caseNumber'] = ("{$this->pdo->lastInsertId()}")) : ($result['caseNumber'] = null);
 		}
 
 		//get nearest CSOs based on district --NOTE: CHANGE IMPROVE AFTER PILOT FOR RADIUS OF 5km MAX
-		$mapping = new SafePalMapping;
-		$userdistrict = $mapping->GetLocationDistrict($report['reporter_lat'], $report['reporter_long']);
 
 		$csos = $this->GetCSOs();
 
@@ -88,7 +85,8 @@ final class SafePalDB
 
 			$csoDistrict = $mapping->GetLocationDistrict($csos[$i]['cso_latitude'], $csos[$i]['cso_longitude']);
 
-			if ($csoDistrict == $userdistrict) {
+			if ($csoDistrict == $district) {
+				//--notify via email TO-DO: Refactor
 				array_push($nearbycsos, $csos[$i]);
 			}
 		}
@@ -98,37 +96,41 @@ final class SafePalDB
 		return $result;
 	}
 
-	//get all reports
-	public function GetReports(){
-		$q = "SELECT * FROM incident_report_details";
-		$reports = $this->GetAllReports($q);
-		return $reports;
+	//add note/case activity
+	public function AddCaseActivity($note){
+		$params = array(
+			'note' => $note['note'],
+			'action' => $note['action'],
+			'action_date' => $note['action_date'],
+			'user' => $note['user'],
+			);
+
+		$stmt = $this->pdo->prepare(getenv('NEW_CASE_ACTIVITY_QUERY'));
+
+		$res = $stmt->execute(filter_var_array($params));
+
+		return $res;
 	}
 
-	private function GetAllReports($query){
-		$rp = $this->pdo->prepare($query);
-		$rp->execute();
-		$rps = $rp->fetchAll();
-		return $rps;
+	//get all reports
+	public function GetReports(){
+		$q = $this->pdo->prepare(getenv('GET_ALL_REPORTS_QUERY'));
+		$q->execute();
+		return $q->fetchAll();
 	}
 
 	//get all CSOs
 	private function GetCSOs(){
-		$query = $this->pdo->prepare("SELECT cso_name, cso_email, cso_location, cso_latitude, cso_longitude, cso_working_hours, cso_phone_number FROM cso_details");
+		$query = $this->pdo->prepare(getenv('GET_ALL_CSOS_QUERY'));
 		$query->execute();
 
 		return $query->fetchAll();
 	}
 
-	//return assoc
-	public function AddCSO($cso){
-		$this->$cso = (array) $cso;
-	}
-
 	//get district csos
 	public function NearestDistrictCSO($district){
 		//query
-		$nCSO = $this->pdo->prepare("SELECT * FROM cso_details WHERE cso_location = :district");
+		$nCSO = $this->pdo->prepare(getenv('GET_CSO_BY_DISTRICT_QUERY'));
 		$nCSO->execute(array("district" => $district));
 		$centres = $nCSO->fetchAll();
 
@@ -137,6 +139,21 @@ final class SafePalDB
 		}
 
 		return null;
+	}
+
+	//check auth
+	public function CheckAuth($user, $hash){
+		$query = $this->pdo->prepare(getenv('CHECKAUTH_QUERY'));
+		$query->execute(array("hash" => $hash, "user" => $user));
+
+		$result = $query->fetchAll();
+
+		if (sizeof($result) > 0) {
+			return true;
+		}
+
+		
+		return false;
 	}
 }
 ?>

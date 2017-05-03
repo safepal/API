@@ -2,7 +2,6 @@
 
 namespace SafePal;
 
-require_once "vendor/autoload.php";
 use Predis as redis;
 
 //register Redis
@@ -10,12 +9,8 @@ redis\Autoloader::register();
 
 //use \Firebase\JWT\JWT; //to handle login/sessions
 
-//ENV
-/*$dotenv = new Dotenv\Dotenv(__DIR__);
-$dotenv->load(); */
-
 /**
-* 
+* Handles all authentication work with db
 */
 final class SafePalAuth
 {
@@ -25,7 +20,8 @@ final class SafePalAuth
 	{
 		try {
 
-			$this->redis = new redis\Client();
+			//$this->redis = new redis\Client(getenv('REDIS_URL'));
+			$this->redis = new redis\Client(getenv('REDIS_URL'));
 
 		} catch (Exception $e) {
 
@@ -46,13 +42,8 @@ final class SafePalAuth
 
 	//generate token
 	protected function GenerateToken(){
-		$token = bin2hex(openssl_random_pseudo_bytes(32)); //64 characters, 512 bits
+		$token = bin2hex(openssl_random_pseudo_bytes(getenv('TOKEN_SIZE'))); 
 		return $token;
-	}
-
-	//track token/user matches
-	protected function TrackToken(){
-
 	}
 
 	//check if token-user match exists
@@ -66,12 +57,20 @@ final class SafePalAuth
 	public function ValidateUser($userid){
 		$db = new SafePalDB();
 		$user = $db->CheckUser($userid);
+		
 		if (!$user) {
-			return false;;
+			return false;
 		}
 
 		return true;
 	}
+
+	//authenticate user
+	public function CheckAuth($username, $hash){
+		$db = new SafePalDB();
+		return $db->CheckAuth($username, $hash);
+	}
+
 }
 
 ?>

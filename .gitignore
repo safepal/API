@@ -1,12 +1,7 @@
-##ignore everything else
-*
-
-##Except the following
-!.gitignore
-!Procfile
-!README.md
-!src/
-!tests/
-!composer.json
-!index.php
-!.htaccess
+#exclude
+/.env.php
+/vendor/
+/logs/
+/composer.phar
+/tests
+/src/routes

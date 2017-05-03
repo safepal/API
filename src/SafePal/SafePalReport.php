@@ -1,45 +1,12 @@
 <?php 
 namespace SafePal;
 
-require_once "vendor/autoload.php";
-
 /**
-* 
+* Helper for report-related work
 */
 final class SafePalReport
 {
 	private $db;
-
-	/**
-	* report properties
-	*/
-	private $survivor_gender;
-
-	private $survivor_date_of_birth;
-
-	private $unique_case_number;
-
-	private $incident_type;
-
-	private $incident_location;
-
-	private $incident_date_and_time;
-
-	private $incident_description;
-
-	private $incident_reported_by;
-
-	private $reporter_lat;
-
-	private $reporter_long;
-
-	private $survivor_contact_phone_number;
-
-	private $survivor_contact_email;
-
-	private $report_source;
-
-	private $spid;
 
 	function __construct()
 	{
@@ -52,6 +19,12 @@ final class SafePalReport
 		$data = $this->db->SaveReport((array)$reportarray);
 		$this->db = null; //close connection
 		return $data;
+	}
+
+	public function AddNote($note){
+		$status = $this->db->AddCaseActivity($note);
+		$this->db = null; //close connection
+		return $status;
 	}
 
 	//get all reports

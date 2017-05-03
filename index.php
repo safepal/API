@@ -13,10 +13,10 @@ use Slim\Csrf as csrf;
 use SafePal as pal;
 
 //ENV
-/*$dotenv = new Dotenv\Dotenv(__DIR__);
-$dotenv->load(); */
+$dotenv = new Dotenv\Dotenv(__DIR__, '.env');
+$dotenv->load(); 
 
-$config = ['settings'=> ['displayErrorDetails' => true, 'debug' => true,]];
+$config = ['settings'=> ['displayErrorDetails' => getenv('DISPLAYERRORDETAILS'), 'debug' => getenv('DISPLAYERRORDETAILS'),]];
 
 //INIT SLIM
 $app = new \Slim\App($config);
@@ -26,135 +26,127 @@ $dicontainer = $app->getContainer();
 
 //Monolog
 $dicontainer['logger'] = function ($logger){
-	$log = new \Monolog\Logger(getenv('LOGGER'));
-	$file = new \Monolog\Handler\StreamHandler(getenv('STREAM_HANDLER'));
-	$log->pushHandler($file);
-	return $log;
+    $log = new \Monolog\Logger(getenv('LOGGER'));
+    $file = new \Monolog\Handler\StreamHandler(getenv('STREAM_HANDLER'));
+    $log->pushHandler($file);
+    return $log;
 };
 
 //auth
 $dicontainer['auth'] = function ($d){
-	$auth = new pal\SafePalAuth;
-	return $auth;
+    $auth = new pal\SafePalAuth;
+    return $auth;
 };
 
 //reports
 $dicontainer['reports'] = function ($rp){
-	return new pal\SafePalReport();
+    return new pal\SafePalReport();
 };
+
 
 //middleware to handle CSRF
 //$app->add(new csrf\Guard);
 
 $app->add(function($req, $res, $next){
-	if (!$req->isXhr()) {
-		return $next($req, $res);
-	}
+    if (!$req->isXhr()) {
+        return $next($req, $res);
+    }
 });
-
-
 
 ///ROOT
 $app->get('/', function (Request $req, Response $res){
-	$res->getBody()->write("SafePal API v1.5");
-	return $res;
+    $res->getBody()->write("SafePal API v1.5");
+    return $res;
 });
 
 /// API V1
 $app->group('/api/v1', function () use ($app) {
 
     /*** AUTH ***/
-    $app->group('/tokens', function () use ($app){
-    	
-    	//get token
-    	$app->get('/newtoken', function (Request $req, Response $res) use ($app){
+    $app->group('/auth', function () use ($app){
+        
+        //get token
+        $app->get('/newtoken', function (Request $req, Response $res) use ($app){
 
-    		$user = $req->getHeaderLine('userid');
+            $user = $req->getHeaderLine('userid');
 
-    		if (!empty($user)) {
+            if (!empty($user)) {
 
-    			$auth = $this->get('auth');
+                $auth = $this->get('auth');
 
-    			if (!$auth->ValidateUser($user)) {
-    				return $res->withJson(array("status" => "failure", "msg" => "invalid user"));
-    			}
+                if (!$auth->ValidateUser($user)) {
+                    return $res->withJson(array(getenv('STATUS') => getenv('FAILURE_STATUS'), getenv('MSG') => getenv('INVALID_USER_MSG')));
+                }
 
-    			$token = $auth->GetToken($user);
+                $token = $auth->GetToken($user);
 
-    			return $res->withJson(array("status" => "success", "token" => $token));
-    		} 
-    	});
+                return $res->withJson(array(getenv('STATUS') => getenv('SUCCESS_STATUS'), "token" => $token));
+            } 
+        });
 
 
-    	//check token
-    	$app->post('/checktoken', function (Request $req, Response $res) use ($app){
-    		$token = $req->getParsedBody()['token'];
+        //check token --handled in middleware
+        $app->post('/checktoken', function (Request $req, Response $res) use ($app){
+        });
 
-    		if (empty($token)) {
-    			return $res->withJson(array("status" => "failure", "msg" => "'token' missing in your request"));
-    		}
+        //login
+        $app->post('/login', function (Request $req, Response $res) use ($app){
 
-    		$tokenExists = $this->auth->CheckToken($token);
+            $username = $req->getParsedBody()['username'];
+            $hash = $req->getParsedBody()['hash'];
 
-    		return $res->withJson(array("tokenstatus" => ($tokenExists ? "token is valid" : "invalid token")));
-    	});
+            $status = $this->auth->CheckAuth($username, $hash);
 
-	});
+            return $res->withJson(array("login" => $status));
+        });
 
-	/*** REPORTS ***/
-	$app->group('/reports', function() use ($app) {
+    });
 
-		//add new reports
-		$app->post('/addreport', function(Request $req, Response $res) use ($app){
-			$report = $req->getParsedBody();
-			$user = $req->getHeaderLine('userid');
+    /*** REPORTS ***/
+    $app->group('/reports', function() use ($app) {
 
-			if (empty($report['token'])) {
-				throw new InvalidArgumentException("No token provided");
-			}
+        //add new reports
+        $app->post('/addreport', function(Request $req, Response $res) use ($app){
 
-			$tokenExists = $this->auth->CheckToken($report['token'], $user);
+            $report = $req->getParsedBody();
 
-			if (!$tokenExists) {
-				return $res->withJson(array("status" => "failure", "msg" => "invalid token"));
-			}
+            //add report
+            $result = $this->reports->AddReport($report);
 
-			//add report
-			$result = $this->reports->AddReport($report);
+            return ($result['caseNumber']) ? $res->withJson(array(getenv('STATUS')  => getenv('SUCCESS_STATUS'), getenv('MSG') => "Report added successfully!", "casenumber" => $result['caseNumber'], "csos" => $result['csos'])) : $res->withJson(array(getenv('STATUS') => getenv('FAILURE_STATUS'), getenv('MSG') => "Failed to add report"));
 
-			return ($result['spid']) ? $res->withJson(array("status" => "success", "msg" => "Report added successfully!", "casenumber" => $result['spid'], "csos" => $result['csos'])) : $res->withJson(array("status" => "failure", "msg" => "Failed to add report"));
-
-		});
+        });
 
         //get all reports
         $app->post('/all', function (Request $req, Response $res) use ($app){
-        	$token = $req->getParsedBody()['token'];
-        	$user = $req->getHeaderLine('userid');
 
-        	$tokenExists = $this->auth->CheckToken($token, $user);
+            $allreports = $this->reports->GetAllReports();
 
-        	if (!$tokenExists) {
-				return $res->withJson(array("status" => "failure", "msg" => "invalid token"));
-			}
-
-			$allreports = $this->reports->GetAllReports();
-
-			return (sizeof($allreports) > 0) ? $res->withJson(array("status" => "success", "reports" => $allreports)): $res->withJson(array("status" => "failure", "reports" => NULL));
+            return (sizeof($allreports) > 0) ? $res->withJson(array(getenv('STATUS')  => getenv('SUCCESS_STATUS'), "reports" => $allreports)): $res->withJson(array(getenv('STATUS')  => getenv('FAILURE_STATUS'), "reports" => NULL));
 
         });
-	});
-
-	/*** CSOs ***/
-
-	/*** USERS ***/
 });
-//->add(); -- add middleware to run auth
 
-function IsRequestEmpty($reqData){
-	if (empty($reqData)) {
-		throw new InvalidArgumentException("Empty request");
-	}
-}
+        /*** CASE ACTIVITY ***/
+    $app->group('/activity', function () use ($app){
+        
+        //add note
+        $app->post('/addactivity', function (Request $req, Response $res) use ($app){
+
+            $note = $req->getParsedBody();
+
+            if (empty($note)) {
+                $res->withJson(array(getenv('STATUS')  => getenv('FAILURE_STATUS'), getenv('MSG') => getenv('NOTE_EMPTY_MSG')));
+            }
+
+            $result = $this->reports->AddNote($note);
+
+            return ($result) ? $res->withJson(array(getenv('STATUS') => getenv('SUCCESS_STATUS'), getenv('MSG') => getenv('NOTE_SUCCESS_MSG'))): $res->withJson(array(getenv('STATUS') => getenv('FAILURE_STATUS'), getenv('MSG') => getenv('NOTE_FAILURE_MSG'))); 
+
+        });
+
+    });
+})->add(new pal\AuthMiddleware());
 
 //run api app
 $app->run();

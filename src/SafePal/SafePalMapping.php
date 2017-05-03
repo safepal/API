@@ -1,8 +1,6 @@
 <?php
 namespace SafePal;
 
-require_once "vendor/autoload.php";
-
 //geocoder
 use \Geocoder\Provider\GoogleMaps as gmaps;
 
@@ -10,7 +8,7 @@ use \Geocoder\Provider\GoogleMaps as gmaps;
 use \Ivory\HttpAdapter\CurlHttpAdapter as CurlHttpAdapter; 
 
 /**
-* 
+* Handles all mapping-related work
 */
 final class SafePalMapping 
 {
@@ -31,8 +29,7 @@ final class SafePalMapping
 	}
 
 	public static function GetDistance($userlat, $userlng, $destlat, $destlng){
-
-		//calculate distance -- given user location and available CSOs
+		//calculate distance -- 
 
 		$theta = $userlng - $destlng;
 
